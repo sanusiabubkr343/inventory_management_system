@@ -15,6 +15,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     lastname = models.CharField(max_length=255, blank=True, null=True)
     role = models.CharField(max_length=20,choices=USER_ROLE,default=default_role)
     is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
