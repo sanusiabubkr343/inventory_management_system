@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "user",
+    "product",
     # third-party-apps
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
