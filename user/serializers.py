@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from django.utils.text import gettext_lazy as _
 
 
 EXISITING_EMAIL_ERROR = "Email already exist"
@@ -90,3 +92,8 @@ class LoginUserSerializer(serializers.ModelSerializer):
             "password",
             "user_data",
         ]
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+

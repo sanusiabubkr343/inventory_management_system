@@ -1,8 +1,9 @@
 from django.contrib.auth import authenticate
 from rest_framework import generics, mixins, status, viewsets, filters
-from .serializers import UserListSerializer, UserSignUpSerializer, LoginUserSerializer
+from .serializers import LogoutSerializer, UserListSerializer, UserSignUpSerializer, LoginUserSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
@@ -49,6 +50,7 @@ class UserViewSets(
         url_path='register',
     )
     def register_user(self, request, pk=None):
+        """Endpoint to register user"""
         serializer = UserSignUpSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -66,6 +68,7 @@ class UserViewSets(
         url_path='login',
     )
     def login(self, request, pk=None):
+        """Endpoint to login user"""
         serializer = LoginUserSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data["email"]
@@ -81,5 +84,34 @@ class UserViewSets(
                 data={"message": "Invalid email or password"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+        permission_classes=[IsAuthenticated],
+        serializer_class=LogoutSerializer,
+        url_path='logout',
+    )
+    def logout(self,request,pk=None):
+        """logout user"""
+        serializer = LogoutSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            refresh_token = serializer.validated_data["refresh"]
+            try:
+                token=RefreshToken(refresh_token)
+                token.blacklist()
+                response = {
+                   "message": "Logout Successful",
+               }
+                return Response(data=response, status=status.HTTP_200_OK)
+
+            except TokenError:
+                default_error_messages = 'Token is invalid or expired'
+                return Response(
+                    data={"success": False, "error": default_error_messages},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
