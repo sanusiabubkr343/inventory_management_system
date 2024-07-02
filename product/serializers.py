@@ -22,7 +22,7 @@ class CreateProductSerializer(serializers.ModelSerializer):
 
 
 class ListProductSerializer(serializers.ModelSerializer):
-    created_by = serializers.StringRelatedField(source="created_by.fullname")
+    created_by = serializers.StringRelatedField(source="created_by.firstname")
     class Meta:
         model = Product
-        fields = ["__all__"]
+        fields = "__all__"
