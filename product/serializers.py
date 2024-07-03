@@ -18,7 +18,7 @@ class CreateProductSerializer(serializers.ModelSerializer):
         if price < 0.0:
             return serializers.ValidationError("Price of a product cannot be less than 0.0")
 
-        return super().validate(attrs)  
+        return attrs  
 
 
 class ListProductSerializer(serializers.ModelSerializer):
