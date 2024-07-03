@@ -13,12 +13,12 @@ class CreateProductSerializer(serializers.ModelSerializer):
         price = attrs["price"]
 
         if quantity <= 0:
-            return serializers.ValidationError("Product quantity must  be greater than zero")
+            raise serializers.ValidationError("Product quantity must  be greater than zero")
 
         if price < 0.0:
-            return serializers.ValidationError("Price of a product cannot be less than 0.0")
+            raise serializers.ValidationError("Price of a product cannot be less than 0.0")
 
-        return super().validate(attrs)  
+        return attrs  
 
 
 class ListProductSerializer(serializers.ModelSerializer):

@@ -62,7 +62,7 @@ class TestUserEndpoints:
         assert "refresh" in response.json()["data"]["tokens"]
 
     def test_deny_user_login(self, api_client):
-        """test deny registration with wrong credentials"""
+        """test deny login with wrong credentials"""
         user = UserFactory(email="sanusi@gmail.com", password="password123", is_active=True)
         payload = {"email":user.email, "password": "wrongPassword"}
         url = reverse("user:user-login")
