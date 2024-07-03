@@ -25,8 +25,8 @@ class OrderViewSets(
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['owner', 'status']
     search_fields = [
-        'orderitem_set__product__name',
-        'orderitem_set__product__description',
+        'orderitem__product__name',
+        'orderitem__product__description',
     ]
     ordering_fields = [
         'created_at',
