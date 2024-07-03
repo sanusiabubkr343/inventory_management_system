@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "user",
     "product",
+    "order",
     # third-party-apps
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
