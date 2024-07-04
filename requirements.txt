@@ -2,8 +2,6 @@ Django
 django_debug_toolbar
 djangorestframework
 djangorestframework-simplejwt
-psycopg2
-psycopg2-binary
 dj-database-url
 python-decouple
 django-cors-headers
