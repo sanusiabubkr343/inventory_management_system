@@ -148,7 +148,7 @@ class TestProductEndpoints:
         quantity_threshold=7
         url = reverse(STOCK_REPORT_URL)
         joined_url = url + f"?quantity={quantity_threshold}"
-        response = api_client.post(joined_url,format="application/json")
+        response = api_client.post(joined_url,format="json")
     
         assert response.status_code == status_code
         if response.status_code == 200:
