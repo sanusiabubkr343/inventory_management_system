@@ -1,8 +1,3 @@
-# test create product(200,401,403)
-# test update,partial update(200,400,403)
-# test delete(200,403)
-# test list and get (200,401)
-
 import pytest
 from django.urls import reverse
 from rest_framework import status
@@ -11,6 +6,7 @@ from product.test.factories import ProductFactory
 pytestmark = pytest.mark.django_db
 PRODUCT_DETAIL_URL = "product:product-detail"
 PRODUCT_LIST_URL = "product:product-list"
+STOCK_REPORT_URL = "product:product-generate-low-stock-report"
 
 
 class TestProductEndpoints:
@@ -75,13 +71,13 @@ class TestProductEndpoints:
         url = reverse(PRODUCT_DETAIL_URL, kwargs={"pk": task.id})
         response = api_client.get(url)
         assert response.status_code == 200
-        assert response.json()["data"]["name"] == task.name
-        assert response.json()["data"]["description"] == task.description
+        assert response.data["name"] == task.name
+        assert response.data["description"] == task.description
 
     def test_unauthorized_get_task(self, api_client):
         """Test unauthorized getting of a task"""
         user = UserFactory()
-        task = ProductFactory.create(user=user)
+        task = ProductFactory.create(created_by=user)
         url = reverse(PRODUCT_DETAIL_URL, kwargs={"pk": task.id})
         response = api_client.get(url)
         assert response.status_code == 401
@@ -132,3 +128,28 @@ class TestProductEndpoints:
         url = reverse(PRODUCT_DETAIL_URL, kwargs={"pk": task.id})
         response = api_client.delete(url)
         assert response.status_code == status_code
+
+    @pytest.mark.parametrize(
+        "role, status_code",
+        [
+            ('admin', 200),
+            ('regular_user', 403),
+        ],
+    )
+    def test_generate_low_stock_report(self, api_client, role, status_code, mocked_authentication_with_role):
+        """test endpoint for generating a report of all products that are low in stock with respect to input qunatity,e,g report with quantity less than 10"""
+        user1 = UserFactory()
+        user2=UserFactory()
+        ProductFactory(quantity=5,created_by=user1)
+        ProductFactory(quantity=6, created_by=user1)
+        ProductFactory(quantity=3, created_by=user2)
+        ProductFactory(quantity=9, created_by=user2)
+        mocked_authentication_with_role(active_user=user1, role=role)
+        quantity_threshold=7
+        url = reverse(STOCK_REPORT_URL)
+        joined_url = url + f"?quantity={quantity_threshold}"
+        response = api_client.post(joined_url,format="application/json")
+    
+        assert response.status_code == status_code
+        if response.status_code == 200:
+           assert response.json().get("total") == 3
