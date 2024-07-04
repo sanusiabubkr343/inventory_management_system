@@ -44,8 +44,8 @@ class TestOrderEndpoints:
         mocked_authentication(active_user=regular_user)
         url = reverse(CREATE_ORDER_URL)
         response = api_client.post(url, data=payload, format="json")
-        assert response.status_code == 200
-
+        assert response.status_code == 201
+        
     def test_deny_unathenticated_user_order_creation(self, api_client):
         initiator = UserFactory(role='admin')
         product1 = ProductFactory(created_by=initiator)
