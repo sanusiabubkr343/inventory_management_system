@@ -6,7 +6,9 @@ from .serializers import (
     OrderDetailSerializer,
     OrderItemCreateSerializer,
     OrderItemListSerializer,
+    CustomerProductReportSerializer
 )
+from django.db.models.functions import Cast
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -51,6 +53,8 @@ class OrderViewSets(
             return OrderItemCreateSerializer
         elif self.action == 'create_order_with_items':
             return OrderCreationSerializer
+        elif self.action == 'generate_frequent_purchased_product':
+            return CustomerProductReportSerializer
         else:
             return None
 
@@ -198,22 +202,28 @@ class OrderViewSets(
     @action(
         methods=['GET'],
         detail=False,
-        serializer_class=OrderItemListSerializer,
         permission_classes=[IsRegularUser],
-        url_path='generate-frequent-report-by-',
+        url_path='generate-frequent-report-for-purchased-product',
     )
-    def generate_frequent_report(self, request, *args, **kwargs):
+    def generate_frequent_purchased_product(self, request, *args, **kwargs):
 
-        frequent_one = OrderItem.objects.filter(order__owner=self.request.user).annotate(total_quantity=Sum(F('quantity_required')))
-
-        qs = frequent_one.order_by('-total_quantity')
-
-        total_sales_amount = qs.aggregate(total_sales_amount=Sum(F('total_price'))).get(
-            'total_sales_amount', Decimal(0.00)
+        qs = (
+            OrderItem.objects.filter(order__owner=self.request.user)
+            .values('product')
+            .annotate(
+                total_quantity_required=Sum('quantity_required'),
+                total_expenditure_on_product=Sum('total_price'),
+            )
+            .order_by('-total_quantity_required')
         )
 
+        serialized_data = CustomerProductReportSerializer(
+        instance=qs, many=True
+       ).data  
+
         response = {
-            "data": OrderItemListSerializer(instance=qs, many=True).data,
-            "total_sales_amount": round(total_sales_amount, 2),
+        "data": serialized_data,
+       "count": len(serialized_data),
         }
+
         return Response(data=response, status=status.HTTP_200_OK)

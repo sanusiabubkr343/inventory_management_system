@@ -4,10 +4,33 @@ from product.models import Product
 from decimal import Decimal
 
 class OrderItemListSerializer(serializers.ModelSerializer):
-    total_quantity = serializers.CharField(read_only=True)
     class Meta:
         fields = "__all__"
         model = OrderItem
+
+
+class CustomerProductReportSerializer(serializers.Serializer):
+    product = serializers.StringRelatedField()
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    total_expenditure_on_product = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    total_quantity_required = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = [
+            'product',
+            'product_name',
+            'total_quantity_required',
+            'total_expenditure_on_product',
+        ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        expenditure = Decimal(representation['total_expenditure_on_product'])
+        representation['total_expenditure_on_product'] = round(expenditure, 2)
+        return representation
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
