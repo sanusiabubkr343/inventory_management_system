@@ -28,4 +28,7 @@ class OrderItem(models.Model):
     order=models.ForeignKey("Order",on_delete=models.CASCADE)
 
     def __str__(self):
+
         return f"Order Item {self.pk} for product {self.product.name}"
+
+

@@ -15,10 +15,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-
+from user.permissions import IsRegularUser
 from datetime import datetime
 from django.db.models import Sum, F
 from decimal import Decimal
+from .models import OrderItem
 
 class OrderViewSets(
     mixins.ListModelMixin,
@@ -37,7 +38,6 @@ class OrderViewSets(
     ordering_fields = [
         'created_at',
     ]
-    
 
     def get_queryset(self):
         if self.request.user.role == 'admin':
@@ -192,5 +192,28 @@ class OrderViewSets(
         response = {
             "data": OrderItemListSerializer(instance=ordered_items, many=True).data,
             "total_sales_amount": round(total_sales_amount,2),
+        }
+        return Response(data=response, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        serializer_class=OrderItemListSerializer,
+        permission_classes=[IsRegularUser],
+        url_path='generate-frequent-report-by-',
+    )
+    def generate_frequent_report(self, request, *args, **kwargs):
+
+        frequent_one = OrderItem.objects.filter(order__owner=self.request.user).annotate(total_quantity=Sum(F('quantity_required')))
+
+        qs = frequent_one.order_by('-total_quantity')
+
+        total_sales_amount = qs.aggregate(total_sales_amount=Sum(F('total_price'))).get(
+            'total_sales_amount', Decimal(0.00)
+        )
+
+        response = {
+            "data": OrderItemListSerializer(instance=qs, many=True).data,
+            "total_sales_amount": round(total_sales_amount, 2),
         }
         return Response(data=response, status=status.HTTP_200_OK)

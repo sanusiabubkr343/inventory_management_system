@@ -4,10 +4,10 @@ from product.models import Product
 from decimal import Decimal
 
 class OrderItemListSerializer(serializers.ModelSerializer):
+    total_quantity = serializers.CharField(read_only=True)
     class Meta:
         fields = "__all__"
         model = OrderItem
-        
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
@@ -49,5 +49,3 @@ class OrderCreationSerializer(serializers.Serializer):
         ordered_items = [OrderItem(**item,order=order)  for item in self.validated_data["items"]]
         OrderItem.objects.bulk_create(ordered_items)
         return order
-
-  
